@@ -1,0 +1,10 @@
+# Stock collection crontab template
+# Collects multiple stocks according to schedule
+
+*/1 * * * * /usr/local/bin/python /app/collect.py AAPL >> /var/log/cron.log 2>&1
+*/5 * * * * /usr/local/bin/python /app/collect.py MSFT >> /var/log/cron.log 2>&1
+*/5 * * * * /usr/local/bin/python /app/collect.py GOOGL >> /var/log/cron.log 2>&1
+*/5 * * * * /usr/local/bin/python /app/collect.py AMZN >> /var/log/cron.log 2>&1
+*/5 * * * * /usr/local/bin/python /app/collect.py NVDA >> /var/log/cron.log 2>&1
+*/5 * * * * /usr/local/bin/python /app/collect.py META >> /var/log/cron.log 2>&1
+*/5 * * * * /usr/local/bin/python /app/collect.py TSLA >> /var/log/cron.log 2>&1

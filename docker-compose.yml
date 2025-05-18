@@ -1,0 +1,67 @@
+version: '3.8'
+
+x-db-config: &db-config
+  DB_HOST: mysql
+  DB_USER: ${DB_USER:-stockuser}
+  DB_PASSWORD: ${DB_PASSWORD:-stockpassword}
+  DB_NAME: data
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: stock_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: data
+      MYSQL_USER: ${DB_USER:-stockuser}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-stockpassword}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - stock_network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: stock_api
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "5000:5000"
+    environment:
+      <<: *db-config
+    networks:
+      - stock_network
+
+  collector:
+    build:
+      context: .
+      dockerfile: Dockerfile.collector
+    container_name: stock_collector
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      <<: *db-config
+      # To avoid demo API key limitations, register for a free key at https://www.alphavantage.co/support/#api-key
+      # and set it as an environment variable: export ALPHA_VANTAGE_API_KEY=your_key
+      ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-demo}
+    volumes:
+      - ./start-collector.sh:/app/start-collector.sh
+      - ./crontab.template:/app/crontab.template
+      - ./.env:/app/.env
+    networks:
+      - stock_network
+
+networks:
+  stock_network:
+    driver: bridge
+
+volumes:
+  mysql_data: 
